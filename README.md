@@ -58,7 +58,7 @@ tmdb:
 After the container is created, you can also manually run the script with:
 
 ```bash
-docker exec -it retroreplay python /app/main.py
+docker exec -it retroreplay python /app/main.py --run
 ```
 
 ### Configure Kometa

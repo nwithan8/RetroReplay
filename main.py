@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime, timedelta
 import os
 import time
@@ -156,14 +157,22 @@ def run():
     print(f"\nScript execution time: {hours} hours, {minutes} minutes, {seconds} seconds")
 
 
-run_at = os.getenv("RUN_AT", default="02:00")
-dtime_24hour = time.strptime(run_at, "%H:%M")
-dtime_12hour = time.strftime( "%I:%M %p", dtime_24hour )
-print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
-while True:
-    if run_at == time.strftime('%I:%M %p'):
-        run()
-        print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
-        time.sleep(60)
-    else:
-        time.sleep(20)
+parser = argparse.ArgumentParser()
+parser.add_argument("--run", action="store_true")
+parser.parse_args()
+args = parser.parse_args()
+
+if args.run is True:
+    run()
+else:
+    run_at = os.getenv("RUN_AT", default="02:00")
+    dtime_24hour = time.strptime(run_at, "%H:%M")
+    dtime_12hour = time.strftime( "%I:%M %p", dtime_24hour )
+    print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
+    while True:
+        if run_at == time.strftime('%I:%M %p'):
+            run()
+            print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
+            time.sleep(60)
+        else:
+            time.sleep(20)
