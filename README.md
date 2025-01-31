@@ -14,7 +14,7 @@ Inspired by https://github.com/InsertDisc/pattrmm.
 
 Create `config.yml`:
 
-```
+```yaml
 libraries:
   Movies:
     imdb_min_rating: 70
@@ -40,9 +40,9 @@ tmdb:
 
 ### Docker Compose
 
-```
+```yaml
   retroreplay:
-    image: retroreplay:latest
+    image: ghcr.io/d3mystified/retroreplay:main
     container_name: retroreplay
     environment:
       - PUID=1000
@@ -57,13 +57,13 @@ tmdb:
 
 After the container is created, you can also manually run the script with:
 
-```
+```bash
 docker exec -it retroreplay python /app/main.py
 ```
 
 ### Configure Kometa
 
-```
+```yaml
 collections:
   Released This Month In History:
     tmdb_list: 12345  # ID from above
