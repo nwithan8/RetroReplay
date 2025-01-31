@@ -69,4 +69,5 @@ collections:
     tmdb_list: 12345  # ID from above
     sync_mode: sync
     collection_order: random
+    url_poster: https://raw.githubusercontent.com/Kometa-Team/Default-Images/refs/heads/master/chart/This%20Week%20in%20History.jpg
 ```
