@@ -158,11 +158,12 @@ def run():
 
 run_at = os.getenv("RUN_AT", default="02:00")
 dtime_24hour = time.strptime(run_at, "%H:%M")
-print(f"It's {time.strftime('%H:%M')}. Waiting for next run at {str(dtime_24hour)}")
+dtime_12hour = time.strftime( "%I:%M %p", dtime_24hour )
+print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
 while True:
-    if run_at == time.strftime('%H:%M'):
+    if run_at == time.strftime('%I:%M %p'):
         run()
-        print(f"It's {time.strftime('%H:%M')}. Waiting for next run at {str(dtime_24hour)}")
+        print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
         time.sleep(60)
     else:
         time.sleep(20)
