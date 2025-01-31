@@ -4,9 +4,9 @@ Highlight your Plex media that originally aired in the past during the current w
 
 ![](https://i.imgur.com/akwExaK.png)
 
-To be used with Kometa.
+The script updates lists on TMDb after filtering out low-rated content against MDBList. These lists are intended to be used with Kometa to create collections on Plex.
 
-Inspired by https://github.com/InsertDisc/pattrmm.
+*Inspired by https://github.com/InsertDisc/pattrmm.*
 
 ## How to use
 
