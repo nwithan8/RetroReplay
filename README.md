@@ -10,6 +10,8 @@ Inspired by https://github.com/InsertDisc/pattrmm.
 
 ## How to use
 
+### Configure
+
 Create `config.yml`:
 
 ```
@@ -34,4 +36,37 @@ plex:
 tmdb:
   access_token: reallylongstring  # Get from https://www.themoviedb.org/settings/api
   api_key: abc123  # Get from https://www.themoviedb.org/settings/api
+```
+
+### Docker Compose
+
+```
+  retroreplay:
+    image: retroreplay:latest
+    container_name: retroreplay
+    environment:
+      - PUID=1000
+      - GUID=1000
+      - TZ=America/Los_Angeles
+      - CONFIG_FILE=/config/config.yml
+      - RUN_AT=13:51  # Run at 1:51pm
+    volumes:
+      - /path/to/retroreplay:/config
+    restart: always
+```
+
+After the container is created, you can also manually run the script with:
+
+```
+docker exec -it retroreplay python /app/main.py
+```
+
+### Configure Kometa
+
+```
+collections:
+  Released This Month In History:
+    tmdb_list: 12345  # ID from above
+    sync_mode: sync
+    collection_order: random
 ```

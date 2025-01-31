@@ -7,7 +7,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
-RUN apk add --no-cache curl build-base openssl-dev bash
 COPY requirements.txt ./requirements.txt
 RUN python -m pip install -r requirements.txt
 
