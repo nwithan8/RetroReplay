@@ -4,3 +4,4 @@ tmdbapis
 pyyaml
 setuptools
 schedule
+pytz

@@ -6,6 +6,7 @@ import yaml
 
 from urllib3.util.retry import Retry
 import schedule
+import pytz
 from plexapi.server import PlexServer
 import requests
 from requests.adapters import HTTPAdapter
@@ -16,7 +17,12 @@ MDBLIST_BASE_URL = "https://api.mdblist.com"
 CONFIG_FILE = os.getenv("CONFIG_FILE", default='config.yml')
 
 
-def run():
+def run(run_at: str = None):
+    if run_at:
+        print(f"Running at scheduled {run_at} time...")
+    else:
+        print("Running immediately...")
+
     # Record start time
     start_time = datetime.now()
 
@@ -105,7 +111,7 @@ def run():
         elif date_range_type == 'month':
             start_date = today.replace(day=1)
             end_date = (start_date.replace(month=start_date.month + 1, day=1) - timedelta(days=1)) if start_date.month < 12 else start_date.replace(day=31)
-        else: # Day or other invalid value
+        else:  # Day or other invalid value
             start_date = today
             end_date = today
 
@@ -155,8 +161,8 @@ def run():
     print(f"\nScript execution time: {hours} hours, {minutes} minutes, {seconds} seconds")
 
 
-def print_current_time_and_schedule(run_at: str):
-    current_time = datetime.now().strftime("%H:%M")
+def print_current_time_and_schedule(timezone, run_at: str):
+    current_time = datetime.now(tz=timezone).strftime("%H:%M")
 
     print(f"It's {current_time}. Waiting for next run at {run_at}")
 
@@ -168,13 +174,24 @@ def main():
     args = parser.parse_args()
 
     if args.run:  # Run once immediately and exit if configured accordingly
-        run()
+        run(run_at=None)
         exit(0)
 
-    run_at = os.getenv("RUN_AT", default="02:00")
-    schedule.every().day.at(run_at).do(job_func=run)
-    schedule.every().hour.at(":00").do(job_func=print_current_time_and_schedule, run_at=run_at)
+    # Load timezone and run time from environment variables
+    run_at_str = os.getenv("RUN_AT", default="02:00")
+    timezone_str = os.getenv("TZ", default="UTC")
+    try:
+        timezone = pytz.timezone(zone=timezone_str)
+    except pytz.UnknownTimeZoneError:
+        print(f"Unknown timezone: {timezone_str}. Defaulting to UTC.")
+        timezone = pytz.utc
 
+    # Immediately print the current time and schedule to let the user know it's running
+    print_current_time_and_schedule(timezone=timezone, run_at=run_at_str)
+
+    # Schedule the run job and a time print every hour
+    schedule.every().day.at(time_str=run_at_str, tz=timezone).do(job_func=run, run_at=run_at_str)
+    schedule.every().hour.at(":00").do(job_func=print_current_time_and_schedule, timezone=timezone, run_at=run_at_str)
     while True:
         schedule.run_pending()
         time.sleep(1)
