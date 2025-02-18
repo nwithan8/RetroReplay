@@ -1,18 +1,20 @@
 import argparse
+import time
 from datetime import datetime, timedelta
 import os
-import time
-from urllib3.util.retry import Retry
+import yaml
 
+from urllib3.util.retry import Retry
+import schedule
 from plexapi.server import PlexServer
 import requests
 from requests.adapters import HTTPAdapter
 from tmdbapis import TMDbAPIs
-import yaml
 
 # Constants
 MDBLIST_BASE_URL = "https://api.mdblist.com"
 CONFIG_FILE = os.getenv("CONFIG_FILE", default='config.yml')
+
 
 def run():
     # Record start time
@@ -38,15 +40,14 @@ def run():
     else:
         print("Authenticated token loaded from file.")
 
-
     # Initialize Plex client
     plex = PlexServer(config['plex']['url'], config['plex']['token'])
-
 
     def make_request_with_retry(url, method="POST", data=None, headers=None):
         """Makes a request with retry policy for 5xx errors, supporting GET and POST."""
 
-        retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504], allowed_methods=["GET", "POST"])
+        retries = Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504],
+                        allowed_methods=["GET", "POST"])
         adapter = HTTPAdapter(max_retries=retries)
         http = requests.Session()
         http.mount("https://", adapter)
@@ -64,7 +65,6 @@ def run():
         except requests.exceptions.RequestException as e:
             print(f"Request failed after multiple retries: {e}")
             return None
-
 
     def should_include_media(mdblist_type, tmdb_id, imdb_min_rating, imdb_min_votes):
         """Determines if media should be included based on IMDb ratings."""
@@ -87,12 +87,11 @@ def run():
         if score is None or votes is None:
             return False
 
-        return score >= imdb_min_rating or votes >= imdb_min_votes # Modified condition to OR
+        return score >= imdb_min_rating or votes >= imdb_min_votes  # Modified condition to OR
 
     # Check MDBList API limits (only once)
     limits = make_request_with_retry(f'{MDBLIST_BASE_URL}/user?apikey={config["mdblist"]["api_key"]}', method="GET", headers={'Content-Type': 'application/json'})
     print(f'MDBList API limits = {limits}')
-
 
     for library_name, library_config in config["libraries"].items():
         print(f"\n============================\nWorking on library {library_name}")
@@ -113,7 +112,7 @@ def run():
         print(f'Date range: {start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")}')
 
         candidate_date_ranges = []
-        for year in range(library_config["starting_year"], today.year + 1): # Use today.year
+        for year in range(library_config["starting_year"], today.year + 1):  # Use today.year
             year_start = datetime(year, start_date.month, start_date.day)
             year_end = datetime(year, end_date.month, end_date.day)
 
@@ -125,7 +124,6 @@ def run():
 
         mdblist_type = 'show' if media_type == 'show' else 'movie'
         tmdb_type = "tv" if media_type == 'show' else "movie"
-
 
         tmdb_list = tmdb.list(library_config["tmdb_list_id"])
         print(f'Clearing list {library_config["tmdb_list_id"]}')
@@ -157,22 +155,30 @@ def run():
     print(f"\nScript execution time: {hours} hours, {minutes} minutes, {seconds} seconds")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--run", action="store_true")
-parser.parse_args()
-args = parser.parse_args()
+def print_current_time_and_schedule(run_at: str):
+    current_time = datetime.now().strftime("%H:%M")
 
-if args.run is True:
-    run()
-else:
+    print(f"It's {current_time}. Waiting for next run at {run_at}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run", action="store_true")
+    parser.parse_args()
+    args = parser.parse_args()
+
+    if args.run:  # Run once immediately and exit if configured accordingly
+        run()
+        exit(0)
+
     run_at = os.getenv("RUN_AT", default="02:00")
-    dtime_24hour = time.strptime(run_at, "%H:%M")
-    dtime_12hour = time.strftime( "%I:%M %p", dtime_24hour )
-    print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
+    schedule.every().day.at(run_at).do(job_func=run)
+    schedule.every().hour.at(":00").do(job_func=print_current_time_and_schedule, run_at=run_at)
+
     while True:
-        if run_at == time.strftime('%I:%M %p'):
-            run()
-            print(f"It's {time.strftime('%I:%M %p')}. Waiting for next run at {str(dtime_12hour)}")
-            time.sleep(60)
-        else:
-            time.sleep(20)
+        schedule.run_pending()
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()

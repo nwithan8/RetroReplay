@@ -1,0 +1,13 @@
+services:
+  retro-replay:
+    image: ghcr.io/d3mystified/retroreplay:main
+    container_name: "RetroReplay"
+    environment:
+      - PUID=1000
+      - GUID=1000
+      - TZ=UTC
+      - CONFIG_FILE=/config/config.yml
+      - RUN_AT=00:00 # Run at midnight every day
+    volumes:
+      - /path/to/host/config/folder:/config
+    restart: "unless-stopped"

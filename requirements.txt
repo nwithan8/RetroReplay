@@ -2,3 +2,5 @@ plexapi
 requests
 tmdbapis
 pyyaml
+setuptools
+schedule
