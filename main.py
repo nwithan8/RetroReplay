@@ -15,6 +15,8 @@ from tmdbapis import TMDbAPIs
 # Constants
 MDBLIST_BASE_URL = "https://api.mdblist.com"
 CONFIG_FILE = os.getenv("CONFIG_FILE", default='config.yml')
+DEFAULT_RUN_AT = "02:00"
+DEFAULT_TZ = "UTC"
 
 
 def run(run_at: str = None):
@@ -178,12 +180,12 @@ def main():
         exit(0)
 
     # Load timezone and run time from environment variables
-    run_at_str = os.getenv("RUN_AT", default="02:00")
-    timezone_str = os.getenv("TZ", default="UTC")
+    run_at_str = os.getenv("RUN_AT", default=DEFAULT_RUN_AT)
+    timezone_str = os.getenv("TZ", default=DEFAULT_TZ)
     try:
         timezone = pytz.timezone(zone=timezone_str)
     except pytz.UnknownTimeZoneError:
-        print(f"Unknown timezone: {timezone_str}. Defaulting to UTC.")
+        print(f"Unknown timezone: {timezone_str}. Defaulting to {DEFAULT_TZ}.")
         timezone = pytz.utc
 
     # Immediately print the current time and schedule to let the user know it's running
